@@ -1,5 +1,3 @@
--- We will create a Common Table Expression (CTE) that joins the three tables so that we can query data easily --
-
 # What is the total amount each customer spent at the restaurant?
 # How many days has each customer visited the restaurant?
 # What was the first item from the menu purchased by each customer?
