@@ -57,18 +57,19 @@
 
 ## 4. What is the most purchased item on the menu and how many times was it purchased by all customers?
 
-    WITH first_order
+   WITH total_purchases
     AS (
     	SELECT *
     	FROM dannys_diner.sales AS sales
     	LEFT JOIN dannys_diner.menu using (product_id)
     	)
+        
     SELECT customer_id
     	,count(product_name) number_of_times_bought
-    FROM first_order
+    FROM total_purchases
     WHERE product_name = (
     		SELECT product_name
-    		FROM first_order
+    		FROM total_purchases
     		GROUP BY product_name
     		ORDER BY count(product_name) DESC limit 1
     		)
@@ -80,4 +81,82 @@
 | A           | 3                      |
 | C           | 3                      |
 | B           | 2                      |
+
+
+## 5. Which item was the most popular for each customer?
+
+    WITH total_purchases_by_product
+         AS (SELECT customer_id,
+                    product_name,
+                    Count(product_name) number_of_times_bought
+             FROM   dannys_diner.sales AS sales
+                    LEFT JOIN dannys_diner.menu using (product_id)
+             GROUP  BY customer_id,
+                       product_name
+             ORDER  BY customer_id,
+                       Count(product_name) DESC)
+    SELECT TPa.customer_id,
+           TPa.product_name
+    FROM   total_purchases_by_product AS TPa
+    WHERE  TPa.number_of_times_bought = (SELECT Max(TPb.number_of_times_bought)
+                                         FROM   total_purchases_by_product AS TPb
+                                         WHERE  TPa.customer_id = TPb.customer_id
+                                         GROUP  BY TPb.customer_id)
+    ORDER  BY TPa.customer_id;
+
+| customer_id | product_name |
+| ----------- | ------------ |
+| A           | ramen        |
+| B           | ramen        |
+| B           | curry        |
+| B           | sushi        |
+| C           | ramen        |
+
+
+## 6. Which item was purchased first by the customer after they became a member?
+
+    WITH member_purchases
+         AS (SELECT *,
+                    Row_number()
+                      OVER (
+                        partition BY customer_id) order_of_purchase
+             FROM   dannys_diner.sales AS sales
+                    LEFT JOIN dannys_diner.menu using (product_id)
+             WHERE  order_date > (SELECT join_date
+                                  FROM   dannys_diner.members
+                                  WHERE  sales.customer_id = members.customer_id))
+    SELECT customer_id,
+           product_name
+    FROM   member_purchases
+    WHERE  order_of_purchase = 1;
+
+| customer_id | product_name |
+| ----------- | ------------ |
+| A           | ramen        |
+| B           | sushi        |
+
+
+## 7. Which item was purchased just before the customer became a member?
+
+    WITH member_purchases
+         AS (SELECT *,
+                    Row_number()
+                      OVER (
+                        partition BY customer_id) order_of_purchase
+             FROM   dannys_diner.sales AS sales
+                    LEFT JOIN dannys_diner.menu using (product_id)
+             WHERE  order_date < (SELECT join_date
+                                  FROM   dannys_diner.members
+                                  WHERE  sales.customer_id = members.customer_id))
+    SELECT customer_id,
+           product_name
+    FROM   member_purchases AS MPa
+    WHERE  order_of_purchase = (SELECT Max(MPb.order_of_purchase)
+                                FROM   member_purchases MPb
+                                WHERE  MPa.customer_id = MPb.customer_id);
+
+| customer_id | product_name | 
+| ----------- | ------------ |
+| A           | curry        |
+| B           | sushi        |
 
