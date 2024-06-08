@@ -1,5 +1,7 @@
 
 ## 1. What is the total amount each customer spent at the restaurant?
+To answer this question, I did left join on the sales and product table to get the price of products on customer's transaction. I then sum the price of each product for each customer as each row is one transaction, one product only. 
+
     SELECT customer_id
     	,sum(price) AS total_spending
     FROM dannys_diner.sales AS sales
@@ -16,6 +18,7 @@
 ---
 
 ## 2. How many days has each customer visited the restaurant?
+To answer this question, I counted the distinct order date 
 
     SELECT customer_id
     	,count(DISTINCT (order_date)) AS total_visit
@@ -81,7 +84,7 @@
 | A           | 3                      |
 | C           | 3                      |
 | B           | 2                      |
-
+--- 
 
 ## 5. Which item was the most popular for each customer?
 
@@ -111,7 +114,7 @@
 | B           | curry        |
 | B           | sushi        |
 | C           | ramen        |
-
+---
 
 ## 6. Which item was purchased first by the customer after they became a member?
 
@@ -135,7 +138,7 @@
 | A           | ramen        |
 | B           | sushi        |
 
-
+---
 ## 7. Which item was purchased just before the customer became a member?
 
     WITH member_purchases
@@ -159,4 +162,131 @@
 | ----------- | ------------ |
 | A           | curry        |
 | B           | sushi        |
+---
+
+## 8. What is the total items and amount spent for each member before they became a member?
+
+    SELECT    customer_id,
+              Count(product_name) AS total_items_purchased,
+              Sum(price)          AS total_spent
+    FROM      dannys_diner.sales
+    LEFT JOIN dannys_diner.menu
+    using     (product_id)
+    WHERE     sales.order_date <
+              (
+                     SELECT members.join_date
+                     FROM   dannys_diner.members
+                     WHERE  sales.customer_id = members.customer_id )
+    GROUP BY  customer_id
+    ORDER BY  customer_id;
+
+| customer_id | total_items_purchased | total_spent |
+| ----------- | --------------------- | ----------- |
+| A           | 2                     | 25          |
+| B           | 3                     | 40          |
+
+---
+## What is the total items and amount spent for each member after they became a member?
+
+    SELECT    customer_id,
+              Count(product_name) AS total_items_purchased,
+              Sum(price)          AS total_spent
+    FROM      dannys_diner.sales
+    LEFT JOIN dannys_diner.menu
+    using     (product_id)
+    WHERE     sales.order_date >
+              (
+                     SELECT members.join_date
+                     FROM   dannys_diner.members
+                     WHERE  sales.customer_id = members.customer_id )
+    GROUP BY  customer_id
+    ORDER BY  customer_id;
+
+| customer_id | total_items_purchased | total_spent |
+| ----------- | --------------------- | ----------- |
+| A           | 3                     | 36          |
+| B           | 3                     | 34          |
+
+---
+## 9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+
+    WITH customer_points AS
+    (
+              SELECT    customer_id,
+                        product_name,
+                        price,
+                        order_date,
+                        CASE
+                                  WHEN product_name = 'sushi' THEN price*20
+                                  ELSE price                            *10
+                        END                AS points
+              FROM      dannys_diner.sales AS sales
+              LEFT JOIN dannys_diner.menu
+              using     (product_id)
+              ORDER BY  customer_id)
+    
+    SELECT   customer_id,
+             Sum(points) AS total_points
+    FROM     customer_points
+    GROUP BY customer_id
+    ORDER BY total_points DESC;
+
+| customer_id | total_points |
+| ----------- | ------------ |
+| B           | 940          |
+| A           | 860          |
+| C           | 360          |
+
+---
+## 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
+
+    WITH customer_points AS
+    (
+              SELECT    customer_id,
+                        product_name,
+                        price,
+                        order_date,
+                        CASE
+                                  WHEN product_name = 'sushi'
+                                  OR        order_date BETWEEN
+                                                                (
+                                                                SELECT join_date
+                                                                FROM   dannys_diner.members
+                                                                WHERE  members.customer_id = sales.customer_id )
+                                  AND
+                                            (
+                                                   SELECT join_date + integer '6' first_week_perks
+                                                   FROM   dannys_diner.members
+                                                   WHERE  members.customer_id = sales.customer_id ) THEN price *20
+                                  ELSE price                                                                   *10
+                        END AS adjusted_points,
+                        CASE
+                                  WHEN order_date BETWEEN
+                                                           (
+                                                           SELECT join_date
+                                                           FROM   dannys_diner.members
+                                                           WHERE  members.customer_id = sales.customer_id )
+                                  AND
+                                            (
+                                                   SELECT join_date + integer '6' first_week_perks
+                                                   FROM   dannys_diner.members
+                                                   WHERE  members.customer_id = sales.customer_id ) THEN 'Y'
+                                  ELSE 'N'
+                        END                AS first_week
+              FROM      dannys_diner.sales AS sales
+              LEFT JOIN dannys_diner.menu
+              using     (product_id)
+              ORDER BY  customer_id)
+    
+    SELECT   customer_id,
+             sum(adjusted_points) AS total_points
+    FROM     customer_points
+    GROUP BY customer_id
+    ORDER BY total_points DESC;
+
+| customer_id | total_points |
+| ----------- | ------------ |
+| A           | 1370         |
+| B           | 940          |
+| C           | 360          |
 
