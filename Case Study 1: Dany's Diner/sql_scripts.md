@@ -60,30 +60,15 @@ To answer this question, I counted the distinct order date
 
 ## 4. What is the most purchased item on the menu and how many times was it purchased by all customers?
 
-   WITH total_purchases
-    AS (
-    	SELECT *
-    	FROM dannys_diner.sales AS sales
-    	LEFT JOIN dannys_diner.menu using (product_id)
-    	)
-        
-    SELECT customer_id
-    	,count(product_name) number_of_times_bought
-    FROM total_purchases
-    WHERE product_name = (
-    		SELECT product_name
-    		FROM total_purchases
-    		GROUP BY product_name
-    		ORDER BY count(product_name) DESC limit 1
-    		)
-    GROUP BY customer_id
-    ORDER BY number_of_times_bought DESC;
+    SELECT product_name, count(product_name) number_of_purchases
+    FROM dannys_diner.sales AS sales
+    LEFT JOIN dannys_diner.menu using (product_id)
+    GROUP BY product_name
+    ORDER BY count(product_name) DESC limit 1;
 
-| customer_id | number_of_times_bought |
-| ----------- | ---------------------- |
-| A           | 3                      |
-| C           | 3                      |
-| B           | 2                      |
+| product_name | number_of_purchases |
+| ------------ | ------------------- |
+| ramen        | 8                   |
 --- 
 
 ## 5. Which item was the most popular for each customer?
@@ -99,7 +84,8 @@ To answer this question, I counted the distinct order date
              ORDER  BY customer_id,
                        Count(product_name) DESC)
     SELECT TPa.customer_id,
-           TPa.product_name
+           TPa.product_name,
+           Tpa.number_of_times_bought
     FROM   total_purchases_by_product AS TPa
     WHERE  TPa.number_of_times_bought = (SELECT Max(TPb.number_of_times_bought)
                                          FROM   total_purchases_by_product AS TPb
@@ -107,27 +93,30 @@ To answer this question, I counted the distinct order date
                                          GROUP  BY TPb.customer_id)
     ORDER  BY TPa.customer_id;
 
-| customer_id | product_name |
-| ----------- | ------------ |
-| A           | ramen        |
-| B           | ramen        |
-| B           | curry        |
-| B           | sushi        |
-| C           | ramen        |
+| customer_id | product_name | number_of_times_bought |
+| ----------- | ------------ | ---------------------- |
+| A           | ramen        | 3                      |
+| B           | ramen        | 2                      |
+| B           | curry        | 2                      |
+| B           | sushi        | 2                      |
+| C           | ramen        | 3                      |
+
 ---
 
 ## 6. Which item was purchased first by the customer after they became a member?
+I didn't arrange the date because theres not timestammp
 
-    WITH member_purchases
+     WITH member_purchases
          AS (SELECT *,
-                    Row_number()
+                    Rank()
                       OVER (
-                        partition BY customer_id) order_of_purchase
+                         partition BY customer_id 
+                         order by order_date ASC) order_of_purchase
              FROM   dannys_diner.sales AS sales
-                    LEFT JOIN dannys_diner.menu using (product_id)
-             WHERE  order_date > (SELECT join_date
-                                  FROM   dannys_diner.members
-                                  WHERE  sales.customer_id = members.customer_id))
+             LEFT JOIN dannys_diner.menu using (product_id)
+             LEFT JOIN dannys_diner.members using (customer_id)
+             WHERE  order_date > join_date)
+             
     SELECT customer_id,
            product_name
     FROM   member_purchases
@@ -143,20 +132,20 @@ To answer this question, I counted the distinct order date
 
     WITH member_purchases
          AS (SELECT *,
-                    Row_number()
+                    Rank ()
                       OVER (
-                        partition BY customer_id) order_of_purchase
+                        partition BY customer_id
+                        order by order_date DESC) order_of_purchase
              FROM   dannys_diner.sales AS sales
-                    LEFT JOIN dannys_diner.menu using (product_id)
-             WHERE  order_date < (SELECT join_date
-                                  FROM   dannys_diner.members
-                                  WHERE  sales.customer_id = members.customer_id))
-    SELECT customer_id,
+             LEFT JOIN dannys_diner.menu using (product_id)
+             LEFT JOIN dannys_diner.members using (customer_id)
+             WHERE  order_date < join_date)
+             
+    SELECT customer_id, 
            product_name
-    FROM   member_purchases AS MPa
-    WHERE  order_of_purchase = (SELECT Max(MPb.order_of_purchase)
-                                FROM   member_purchases MPb
-                                WHERE  MPa.customer_id = MPb.customer_id);
+    FROM   member_purchases 
+    WHERE  order_of_purchase = 1;
+             
 
 | customer_id | product_name | 
 | ----------- | ------------ |
@@ -170,13 +159,9 @@ To answer this question, I counted the distinct order date
               Count(product_name) AS total_items_purchased,
               Sum(price)          AS total_spent
     FROM      dannys_diner.sales
-    LEFT JOIN dannys_diner.menu
-    using     (product_id)
-    WHERE     sales.order_date <
-              (
-                     SELECT members.join_date
-                     FROM   dannys_diner.members
-                     WHERE  sales.customer_id = members.customer_id )
+    LEFT JOIN dannys_diner.menu using  (product_id)
+    LEFT JOIN dannys_diner.members using  (customer_id)
+    WHERE     sales.order_date < join_date
     GROUP BY  customer_id
     ORDER BY  customer_id;
 
@@ -188,19 +173,15 @@ To answer this question, I counted the distinct order date
 ---
 ## What is the total items and amount spent for each member after they became a member?
 
-    SELECT    customer_id,
-              Count(product_name) AS total_items_purchased,
-              Sum(price)          AS total_spent
-    FROM      dannys_diner.sales
-    LEFT JOIN dannys_diner.menu
-    using     (product_id)
-    WHERE     sales.order_date >
-              (
-                     SELECT members.join_date
-                     FROM   dannys_diner.members
-                     WHERE  sales.customer_id = members.customer_id )
-    GROUP BY  customer_id
-    ORDER BY  customer_id;
+        SELECT    customer_id,
+                  Count(product_name) AS total_items_purchased,
+                  Sum(price)          AS total_spent
+        FROM      dannys_diner.sales
+        LEFT JOIN dannys_diner.menu using  (product_id)
+        LEFT JOIN dannys_diner.members using  (customer_id)
+        WHERE     sales.order_date > join_date
+        GROUP BY  customer_id
+        ORDER BY  customer_id;
 
 | customer_id | total_items_purchased | total_spent |
 | ----------- | --------------------- | ----------- |
@@ -218,7 +199,7 @@ To answer this question, I counted the distinct order date
                         order_date,
                         CASE
                                   WHEN product_name = 'sushi' THEN price*20
-                                  ELSE price                            *10
+                                  ELSE price *10
                         END                AS points
               FROM      dannys_diner.sales AS sales
               LEFT JOIN dannys_diner.menu
@@ -253,26 +234,13 @@ To answer this question, I counted the distinct order date
                                                                 SELECT join_date
                                                                 FROM   dannys_diner.members
                                                                 WHERE  members.customer_id = sales.customer_id )
-                                  AND
-                                            (
-                                                   SELECT join_date + integer '6' first_week_perks
-                                                   FROM   dannys_diner.members
-                                                   WHERE  members.customer_id = sales.customer_id ) THEN price *20
-                                  ELSE price                                                                   *10
-                        END AS adjusted_points,
-                        CASE
-                                  WHEN order_date BETWEEN
-                                                           (
-                                                           SELECT join_date
-                                                           FROM   dannys_diner.members
-                                                           WHERE  members.customer_id = sales.customer_id )
-                                  AND
-                                            (
-                                                   SELECT join_date + integer '6' first_week_perks
-                                                   FROM   dannys_diner.members
-                                                   WHERE  members.customer_id = sales.customer_id ) THEN 'Y'
-                                  ELSE 'N'
-                        END                AS first_week
+                                                          AND
+                                                                (
+                                                                SELECT join_date + integer '6' first_week_perks
+                                                                FROM   dannys_diner.members
+                                                                WHERE  members.customer_id = sales.customer_id ) THEN price *20
+                                  ELSE price *10
+                        END AS adjusted_points
               FROM      dannys_diner.sales AS sales
               LEFT JOIN dannys_diner.menu
               using     (product_id)
