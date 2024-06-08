@@ -221,40 +221,32 @@ I didn't arrange the date because theres not timestammp
 ---
 ## 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
 
-    WITH customer_points AS
-    (
-              SELECT    customer_id,
-                        product_name,
-                        price,
-                        order_date,
-                        CASE
-                                  WHEN product_name = 'sushi'
-                                  OR        order_date BETWEEN
-                                                                (
-                                                                SELECT join_date
-                                                                FROM   dannys_diner.members
-                                                                WHERE  members.customer_id = sales.customer_id )
-                                                          AND
-                                                                (
-                                                                SELECT join_date + integer '6' first_week_perks
-                                                                FROM   dannys_diner.members
-                                                                WHERE  members.customer_id = sales.customer_id ) THEN price *20
-                                  ELSE price *10
-                        END AS adjusted_points
-              FROM      dannys_diner.sales AS sales
-              LEFT JOIN dannys_diner.menu
-              using     (product_id)
-              ORDER BY  customer_id)
-    
-    SELECT   customer_id,
-             sum(adjusted_points) AS total_points
-    FROM     customer_points
-    GROUP BY customer_id
-    ORDER BY total_points DESC;
+WITH customer_points AS
+(
+          SELECT    customer_id,
+                    product_name,
+                    price,
+                    order_date,
+                    CASE
+                              WHEN product_name = 'sushi'
+                              OR  order_date BETWEEN join_date AND join_date + integer '6' THEN price*20
+                              ELSE price *10
+                    END AS adjusted_points
+          FROM      dannys_diner.sales AS sales
+          LEFT JOIN dannys_diner.menu using (product_id)
+  		  INNER JOIN dannys_diner.members using (customer_id)
+  		  WHERE extract(month from order_date) = 1
+          ORDER BY  customer_id)
+
+SELECT   customer_id,
+         sum(adjusted_points) AS total_points
+FROM     customer_points
+GROUP BY customer_id
+ORDER BY total_points DESC;
 
 | customer_id | total_points |
 | ----------- | ------------ |
 | A           | 1370         |
-| B           | 940          |
-| C           | 360          |
+| B           | 820          |
+
 
