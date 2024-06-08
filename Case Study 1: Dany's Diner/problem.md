@@ -14,9 +14,11 @@ Danny's Diner is deciding to expand existing customer loyalty program (beta prog
 3. Which menu items are customers' favourite.
 
 ## Business Questions
-Looks like customer A and B has highest and relatively close spending, Maybe we can interview them through incentive of product to determine what makes them loyal to our business.
+
 
 #### 1. What is the total amount each customer spent at the restaurant?
+Looks like customer A and B has highest and relatively close spending, Maybe we can interview them through incentive of product to determine what makes them loyal to our business.
+
 | customer_id | total_spending |
 | ----------- | -------------- |
 | A           | 76             |
