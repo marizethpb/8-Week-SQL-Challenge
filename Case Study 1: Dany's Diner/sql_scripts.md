@@ -39,7 +39,7 @@ To answer this question, I counted the distinct order date
     WITH first_order
     AS (
     	SELECT *
-    		,row_number() OVER (PARTITION BY customer_id) order_of_purchase
+        	,row_number() OVER (PARTITION BY customer_id) order_of_purchase
     	FROM dannys_diner.sales AS sales
     	LEFT JOIN dannys_diner.menu using (product_id)
     	)
@@ -76,22 +76,20 @@ To answer this question, I counted the distinct order date
     WITH total_purchases_by_product
          AS (SELECT customer_id,
                     product_name,
-                    Count(product_name) number_of_times_bought
+                    Count(product_name) number_of_times_bought,
+             		Rank ()OVER (partition by customer_id
+                                 order by Count(product_name) DESC) AS purchase_rank
              FROM   dannys_diner.sales AS sales
                     LEFT JOIN dannys_diner.menu using (product_id)
              GROUP  BY customer_id,
                        product_name
              ORDER  BY customer_id,
                        Count(product_name) DESC)
-    SELECT TPa.customer_id,
-           TPa.product_name,
-           Tpa.number_of_times_bought
-    FROM   total_purchases_by_product AS TPa
-    WHERE  TPa.number_of_times_bought = (SELECT Max(TPb.number_of_times_bought)
-                                         FROM   total_purchases_by_product AS TPb
-                                         WHERE  TPa.customer_id = TPb.customer_id
-                                         GROUP  BY TPb.customer_id)
-    ORDER  BY TPa.customer_id;
+ 
+     SELECT customer_id, product_name
+     FROM total_purchases_by_product
+     WHERE purchase_rank = 1
+     ORDER BY customer_id;
 
 | customer_id | product_name | number_of_times_bought |
 | ----------- | ------------ | ---------------------- |
@@ -221,28 +219,28 @@ I didn't arrange the date because theres not timestammp
 ---
 ## 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
 
-WITH customer_points AS
-(
-          SELECT    customer_id,
-                    product_name,
-                    price,
-                    order_date,
-                    CASE
-                              WHEN product_name = 'sushi'
-                              OR  order_date BETWEEN join_date AND join_date + integer '6' THEN price*20
-                              ELSE price *10
-                    END AS adjusted_points
-          FROM      dannys_diner.sales AS sales
-          LEFT JOIN dannys_diner.menu using (product_id)
-  		  INNER JOIN dannys_diner.members using (customer_id)
-  		  WHERE extract(month from order_date) = 1
-          ORDER BY  customer_id)
-
-SELECT   customer_id,
-         sum(adjusted_points) AS total_points
-FROM     customer_points
-GROUP BY customer_id
-ORDER BY total_points DESC;
+    WITH customer_points AS
+    (
+              SELECT    customer_id,
+                        product_name,
+                        price,
+                        order_date,
+                        CASE
+                                  WHEN product_name = 'sushi'
+                                  OR  order_date BETWEEN join_date AND join_date + integer '6' THEN price*20
+                                  ELSE price *10
+                        END AS adjusted_points
+              FROM      dannys_diner.sales AS sales
+              LEFT JOIN dannys_diner.menu using (product_id)
+      		  INNER JOIN dannys_diner.members using (customer_id)
+      		  WHERE extract(month from order_date) = 1
+              ORDER BY  customer_id)
+    
+    SELECT   customer_id,
+             sum(adjusted_points) AS total_points
+    FROM     customer_points
+    GROUP BY customer_id
+    ORDER BY total_points DESC;
 
 | customer_id | total_points |
 | ----------- | ------------ |
