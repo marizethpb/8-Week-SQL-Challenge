@@ -66,14 +66,22 @@ Looks like customer A and B has highest and relatively close spending, Maybe we 
 | ----------- | ------------ |
 | A           | curry        |
 | B           | sushi        |
+
 ---
 
 #### 8. What is the total items and amount spent for each member before they became a member?
+
+**BEFORE**
 | customer_id | total_items_purchased | total_spent |
 | ----------- | --------------------- | ----------- |
 | A           | 2                     | 25          |
 | B           | 3                     | 40          |
 
+**AFTER**
+| customer_id | total_items_purchased | total_spent |
+| ----------- | --------------------- | ----------- |
+| A           | 3                     | 36          |
+| B           | 3                     | 34          |
 
 #### 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
 | customer_id | total_points |
