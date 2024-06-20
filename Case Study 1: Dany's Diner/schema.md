@@ -5,7 +5,7 @@ SET search_path = dannys_diner;
 ```
 
 
-Shown below is the relationship between tables in the schema. The table shows that Sales Table is the fact table and Menu & and Members Table are dimension tables that are connected by product and customer id.
+Shown below is the relationship between tables in the schema. The image belows shows that Sales Table is the fact table and Menu & and Members Table are dimension tables that are connected by product and customer id.
 ![image](https://github.com/marizethpb/8-Week-SQL-Challenge/assets/79640443/2ab71570-e3c4-46d8-ac8f-50fa2a06fb3d)
 
 
