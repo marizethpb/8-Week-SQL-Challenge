@@ -30,7 +30,7 @@ Danny wanted to explore various metrics of the business from pizza metrics to pr
 #### 7.	For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
 #### 8.	How many pizzas were delivered that had both exclusions and extras?
 #### 9.	What was the total volume of pizzas ordered for each hour of the day?
-#### 10.	What was the volume of orders for each day of the week?
+#### 10. What was the volume of orders for each day of the week?
 #  
 ### B. Runner and Customer Experience
 #### 1.	How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
@@ -72,8 +72,3 @@ Danny wanted to explore various metrics of the business from pizza metrics to pr
         o	Average speed
         o	Total number of pizzas
 #### 5.	If a Meat Lovers pizza was $12 and Vegetarian $10 fixed prices with no cost for extras and each runner is paid $0.30 per kilometre traveled - how much money does Pizza Runner have left over after these deliveries?
-
-
-
-
-
