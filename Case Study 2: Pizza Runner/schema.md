@@ -1,4 +1,4 @@
-# The following is the schema of Pizza Runenr
+# The following is the schema of Pizza Runner
 ```
 CREATE SCHEMA pizza_runner;
 SET search_path = pizza_runner;
