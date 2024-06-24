@@ -1,7 +1,7 @@
 ### A. Pizza Metrics
 
 #### 1.	How many pizzas were ordered?
-I counted the 
+I determined number of pizzas ordered by counting the customer_id
 
     SELECT 
        count(customer_id) total_orders 
@@ -13,19 +13,22 @@ I counted the
 | 14           |
 
 #### 2.	How many unique customer orders were made?
+To answer this question, I first summarized the count for each order. Then I counted orders in summarized table that only has one count
+because "unique" means an object only exist once. 
 
-    SELECT 
-      count(
-        distinct(customer_id)
-      ) total_unique_orders 
+    SELECT COUNT(order_id) total_unique_orders
     FROM 
-      pizza_runner.customer_orders;
+        (SELECT order_id, count(order_id) total_orders
+         FROM pizza_runner.customer_orders
+         GROUP BY order_id) total_customer_orders
+    WHERE total_orders = 1;
 
 | total_unique_orders |
 | ------------------- |
-| 5                   |
+| 7                   |
 
 #### 3.	How many successful orders were delivered by each runner?
+For this question, 
 
     SELECT 
       runner_id, 
