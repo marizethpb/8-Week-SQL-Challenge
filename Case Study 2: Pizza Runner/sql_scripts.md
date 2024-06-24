@@ -1,7 +1,7 @@
 ### A. Pizza Metrics
 
 #### 1.	How many pizzas were ordered?
-I determined number of pizzas ordered by counting the customer_id
+For this question, I determined number of pizzas ordered by counting the customer_id
 
     SELECT 
        count(customer_id) total_orders 
@@ -28,7 +28,8 @@ because "unique" means an object only exist once.
 | 7                   |
 
 #### 3.	How many successful orders were delivered by each runner?
-For this question, 
+For this question, I did inner join on customer_orders table and runner_orders table. Then I counted the order_id which has
+specified pickup_time (null or blank pickup_time means it was cancelled) for each runner.
 
     SELECT 
       runner_id, 
@@ -49,6 +50,8 @@ For this question,
 
 
 #### 4.	How many of each type of pizza was delivered?
+To answer this question, I did inner join on customer_orders table (to link runner_orders and pizza_names table), runner_orders (to determine delivered orders
+), and pizza_names (to get names for each type of pizza). After that, I counted the orders with specified pickup_time (sign that it was delivered) per pizza name.
 
     SELECT 
       pizza_name, 
@@ -68,6 +71,8 @@ For this question,
 | Vegetarian | 3                   |
 
 #### 5.	How many Vegetarian and Meatlovers were ordered by each customer?
+Similar with previous question, I also did inner join on customer_orders table, runner_orders, and pizza_names and filtered data with specified pickup_time.
+So  
 
     SELECT 
       CO.customer_id, 
