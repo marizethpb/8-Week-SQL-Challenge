@@ -22,15 +22,119 @@ Danny wanted to explore various metrics of the business from pizza metrics to pr
 ### A. Pizza Metrics
 
 #### 1.	How many pizzas were ordered?
+There were a total of 14 orders. 
+
+| total_orders |
+| ------------ |
+| 14           |
+
 #### 2.	How many unique customer orders were made?
+There are 7 unique customer orders. 
+
+| total_unique_orders |
+| ------------------- |
+| 7                   |
+
 #### 3.	How many successful orders were delivered by each runner?
+As shown below, runner 1 had the highest delivered orders while runner 3 had the lowest delivered orders. Given this, we should investigate the factors about the huge difference in delivered orders by perhaps interviewing runner 1 and 3.
+
+| runner_id | successful_orders |
+| --------- | ----------------- |
+| 3         | 1                 |
+| 2         | 5                 |
+| 1         | 6                 |
+
 #### 4.	How many of each type of pizza was delivered?
+Shown below are the successful deliveries per type of pizza. It is evident that Meatlovers had the highest orders which also means that people like meat pizzas. Given this, we should increase the supply of our meat pizzas and/or decrease the vegetarian pizza as the former is relatively in demand. 
+
+| pizza_name | successful_delivers |
+| ---------- | ------------------- |
+| Meatlovers | 9                   |
+| Vegetarian | 3                   |
+
 #### 5.	How many Vegetarian and Meatlovers were ordered by each customer?
+Now to drill down who likes vegetarian and meatlovers, we look at the table below. Apparently, most of the customers likes Meatlovers more than Vegetarian. 
+
+| customer_id | pizza_name | total_orders |
+| ----------- | ---------- | ------------ |
+| 101         | Meatlovers | 2            |
+| 101         | Vegetarian | 1            |
+| 102         | Meatlovers | 2            |
+| 102         | Vegetarian | 1            |
+| 103         | Meatlovers | 3            |
+| 103         | Vegetarian | 1            |
+| 104         | Meatlovers | 3            |
+| 105         | Vegetarian | 1            |
+
 #### 6.	What was the maximum number of pizzas delivered in a single order?
+3 pizzas was the maximum number of ordered pizza in a single delivery. Specifically, it was ordered by customer 103.
+
+| customer_id | maximum_pizza |
+| ----------- | ------------- |
+| 103         | 3             |
+
 #### 7.	For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+As shown below, every customer picked a side. It's either they'll have changes in their order or not and they let it stay that way.
+
+| customer_id | changes | no_changes |
+| ----------- | ------- | ---------- |
+| 101         | 0       | 2          |
+| 102         | 0       | 3          |
+| 103         | 3       | 0          |
+| 104         | 3       | 0          |
+| 105         | 1       | 0          |
+
 #### 8.	How many pizzas were delivered that had both exclusions and extras?
+So far, there is only one delivered order that had both exlusions and extras in the pizza.
+
+| both_changes |
+| ------------ |
+| 1            |
+
 #### 9.	What was the total volume of pizzas ordered for each hour of the day?
+Apparently, the pizza orders culminate at night, specifically from 6pm to 11 pm. Given this, we should decrease pizza workers at day shift and then reallocate them during night time.
+
+| hours | total_orders |
+| ----- | ------------ |
+| 1     | 0            |
+| 2     | 0            |
+| 3     | 0            |
+| 4     | 0            |
+| 5     | 0            |
+| 6     | 0            |
+| 7     | 0            |
+| 8     | 0            |
+| 9     | 0            |
+| 10    | 0            |
+| 11    | 1            |
+| 12    | 0            |
+| 13    | 3            |
+| 14    | 0            |
+| 15    | 0            |
+| 16    | 0            |
+| 17    | 0            |
+| 18    | 3            |
+| 19    | 1            |
+| 20    | 0            |
+| 21    | 3            |
+| 22    | 0            |
+| 23    | 3            |
+| 24    | 0            |
+
+
 #### 10. What was the volume of orders for each day of the week?
+Given the table below, the orders cluster from Wednesday to Saturday. We could also realloate some pizza workers on days with no orders to days with higher volume of order such as Wednesday and Saturday.
+
+| day       | total_orders |
+| --------- | ------------ |
+| Sunday    | 0            |
+| Monday    | 0            |
+| Tuesday   | 0            |
+| Wednesday | 5            |
+| Thursday  | 3            |
+| Friday    | 1            |
+| Saturday  | 5            |
+
 #  
 ### B. Runner and Customer Experience
 #### 1.	How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
