@@ -138,12 +138,65 @@ Given the table below, the orders cluster from Wednesday to Saturday. We could a
 #  
 ### B. Runner and Customer Experience
 #### 1.	How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
+| week                     | registered_runners |
+| ------------------------ | ------------------ |
+| 2021-01-01T00:00:00.000Z | 2                  |
+| 2021-01-08T00:00:00.000Z | 1                  |
+| 2021-01-15T00:00:00.000Z | 1                  |
+
 #### 2.	What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
+| runner_id | average_minutes |
+| --------- | --------------- |
+| 1         | 15.68           |
+| 2         | 23.72           |
+| 3         | 10.47           |
+
+
 #### 3.	Is there any relationship between the number of pizzas and how long the order takes to prepare?
+| correl|
+| ----- |
+| 0.84  |
+
 #### 4.	What was the average distance travelled for each customer?
+| customer_id | average_distance |
+| ----------- | ---------------- |
+| 101         | 20.00            |
+| 102         | 16.73            |
+| 103         | 23.40            |
+| 104         | 10.00            |
+| 105         | 25.00            |
+
 #### 5.	What was the difference between the longest and shortest delivery times for all orders?
+| max_min_diff |
+| ------------ |
+| 30           |
+
 #### 6.	What was the average speed for each runner for each delivery and do you notice any trend for these values?
+| runner_id | order_id | average_speed_duration_km_per_min |
+| --------- | -------- | --------------------------------- |
+| 1         | 1        | 0.63                              |
+| 1         | 2        | 0.74                              |
+| 1         | 3        | 0.67                              |
+| 1         | 10       | 1.00                              |
+| 2         | 4        | 0.59                              |
+| 2         | 7        | 1.00                              |
+| 2         | 8        | 1.56                              |
+| 3         | 5        | 0.67                              |
+
+| order_id_and_speed |
+| ------------------ |
+| 0.7055260437275165 |
+
+| total_order_and_speed |
+| --------------------- |
+| 0.40659340659340626   |
+
 #### 7.	What is the successful delivery percentage for each runner?
+| runner_id | success_rate |
+| --------- | ------------ |
+| 1         | 100 %        |
+| 2         | 75 %         |
+| 3         | 50 %         |
 
 #  
 ###  C. Ingredient Optimisation
