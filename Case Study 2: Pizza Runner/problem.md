@@ -147,7 +147,7 @@ Shown below is the registered runners per week. Evidently, the registered runner
 | 2021-01-15T00:00:00.000Z | 1                  |
 
 #### 2.	What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
-The average time shows that runner 3 is the fastest while runner 2 is the slowest to arrive in Pizza HQ. 
+The average time shows that runner 3 is the first while runner 2 is the last reach to Pizza HQ. 
 
 | runner_id | average_minutes |
 | --------- | --------------- |
@@ -157,11 +157,15 @@ The average time shows that runner 3 is the fastest while runner 2 is the slowes
 
 
 #### 3.	Is there any relationship between the number of pizzas and how long the order takes to prepare?
+The correlation coefficient for number of pizzas and the preparation duration is 0.84. This means that there is a very strong positive association with two variables. An increase in the number of pizza is very strongly associated to increased preparation duration. 
+
 | correl|
 | ----- |
 | 0.84  |
 
 #### 4.	What was the average distance travelled for each customer?
+Shown below are the average distance of deliveries for each customer. The table below shows that customer 104 and 105 have the nearest and farthest distances, respectively. 
+
 | customer_id | average_distance |
 | ----------- | ---------------- |
 | 101         | 20.00            |
@@ -171,11 +175,15 @@ The average time shows that runner 3 is the fastest while runner 2 is the slowes
 | 105         | 25.00            |
 
 #### 5.	What was the difference between the longest and shortest delivery times for all orders?
+30 KM is the difference between the longest and shortest delivery. This is quiet a far distance for deliveries and we might consider establishing branches as the distance will be crucial in order cancellation and overall customer experience.
 | max_min_diff |
 | ------------ |
 | 30           |
 
-#### 6.	What was the average speed for each runner for each delivery and do you notice any trend for these values?
+#### 6.	What was the average speed for each runner for each delivery?
+Table below shows the average speed per runner and order. Apparently, the average speed tend to increase as the order id increases. This means that for every additional delivery, the runner gets tired and it takes toll on their speed. One thing to consider is the distance of delivery. The farther the distance, the more tired the rider is and it leads to reduction of their speed.
+
+
 | runner_id | order_id | average_speed_duration_km_per_min |
 | --------- | -------- | --------------------------------- |
 | 1         | 1        | 0.63                              |
@@ -187,16 +195,9 @@ The average time shows that runner 3 is the fastest while runner 2 is the slowes
 | 2         | 8        | 1.56                              |
 | 3         | 5        | 0.67                              |
 
-| order_id_and_speed |
-| ------------------ |
-| 0.7055260437275165 |
-
-| total_order_and_speed |
-| --------------------- |
-| 0.40659340659340626   |
 
 #### 7.	What is the successful delivery percentage for each runner?
-But one thing to take note is that runner 2 has 25% more success rate than runner 3.
+Listed below are the success rate for each rider. Interestingly, runner 2 has 25% more success rate than runner 3 eventhough runner 3 is the first while runner 2 is the last runner to reach Pizza HQ. 
 | runner_id | success_rate |
 | --------- | ------------ |
 | 1         | 100 %        |
