@@ -356,6 +356,9 @@ To answer this question, I first did inner join on runner_orders and customers_o
 
 
 #### 3.	Is there any relationship between the number of pizzas and how long the order takes to prepare?
+To answer this question, I created a CTE (orders_duration) that calculates the number of pizza and average duration per order. I did the same approach as the previous question, I just modified the runner_id to order_id and added total number of pizza.
+
+Then, I used the orders_duration CTE to calculate for the correlation between the number of pizza and duration. The resulting output is the correlation coefficient.
 
      WITH orders_duration AS
       (SELECT order_id,
@@ -376,7 +379,8 @@ To answer this question, I first did inner join on runner_orders and customers_o
 | 0.84  |
 
 #### 4.	What was the average distance travelled for each customer?
-   
+For this question, I did inner join on runner_orders and customer_orders and filtered delivered orders only. After that, I cleaned the row value by using regular expression in substring function and casting the value as numeric. Now that the values are cleaned, I calculated the average distance per customer.
+
     SELECT customer_id, avg(substring(distance, '(\d+\.*\d*)')::numeric)::numeric(4,2) AS average_distance
     FROM pizza_runner.runner_orders INNER JOIN pizza_runner.customer_orders using (order_id)
     WHERE pickup_time not in ('null', '')
@@ -393,6 +397,7 @@ To answer this question, I first did inner join on runner_orders and customers_o
 
 
 #### 5.	What was the difference between the longest and shortest delivery times for all orders?
+
     SELECT max(substring(duration, '([\d]+)')::int) -  min(substring(duration, '([\d]+)')::int) AS max_min_diff
     FROM pizza_runner.runner_orders
     WHERE pickup_time not in ('null', '');
