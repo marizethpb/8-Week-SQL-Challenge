@@ -371,10 +371,10 @@ Then, I used the orders_duration CTE to calculate for the correlation between th
        GROUP BY order_id
        ORDER BY order_id)
    
-    SELECT round(corr(number_of_pizza, average_minutes):: numeric, 2)
+    SELECT round(corr(number_of_pizza, average_minutes):: numeric, 2) as correl
     FROM orders_duration;
 
-| round |
+| correl|
 | ----- |
 | 0.84  |
 
