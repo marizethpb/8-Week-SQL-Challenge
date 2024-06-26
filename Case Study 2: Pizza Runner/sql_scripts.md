@@ -337,7 +337,7 @@ For this question, I discovered the date_trunc function as a life saver. I used 
 
 
 #### 2.	What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
-To answer this question, I first did inner join on runner_orders and customers_orders table and filtered only delivered order (not null or empty). I then get the            average minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order through average difference of pickup_time and order_time. I grouped the result per runner.
+To answer this question, I first did inner join on runner_orders and customers_orders table and filtered only delivered orders (not null or empty). I then get the            average minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order through average difference of pickup_time and order_time. I grouped the result per runner.
 
     SELECT runner_id,
            ROUND(AVG(EXTRACT(EPOCH
@@ -379,7 +379,7 @@ Then, I used the orders_duration CTE to calculate for the correlation between th
 | 0.84  |
 
 #### 4.	What was the average distance travelled for each customer?
-For this question, I did inner join on runner_orders and customer_orders and filtered delivered orders only. After that, I cleaned the row value by using regular expression in substring function and casting the value as numeric. Now that the values are cleaned, I calculated the average distance per customer.
+For this question, I did inner join on runner_orders and customer_orders and filtered delivered orders only. After that, I cleaned the row value by using regular expression in substring function and cast the resulting value as numeric. Now that the values are cleaned, I calculated the average distance per customer.
 
     SELECT customer_id, avg(substring(distance, '(\d+\.*\d*)')::numeric)::numeric(4,2) AS average_distance
     FROM pizza_runner.runner_orders INNER JOIN pizza_runner.customer_orders using (order_id)
@@ -397,6 +397,7 @@ For this question, I did inner join on runner_orders and customer_orders and fil
 
 
 #### 5.	What was the difference between the longest and shortest delivery times for all orders?
+In calculating the difference between the longest and shortest delivery times, I cleaned first the duration column to get the integers using regular expression and filtered the table to return delivered orders only. Finally, I used max and min function on the clean duration column and calculated the difference.
 
     SELECT max(substring(duration, '([\d]+)')::int) -  min(substring(duration, '([\d]+)')::int) AS max_min_diff
     FROM pizza_runner.runner_orders
@@ -408,14 +409,15 @@ For this question, I did inner join on runner_orders and customer_orders and fil
 
 
 #### 6.	What was the average speed for each runner for each delivery and do you notice any trend for these values?
+I calculated the average speed for each delivery by distance/duration on the table with delivered orders only. I did similar approach in previous question about cleaning the distance and duration column. Finally, I grouped the result by runner_id and order_id. 
 
     SELECT runner_id,
-    order_id,
+           order_id,
            avg(substring(distance, '(\d+\.*\d*)')::numeric / substring(duration, '([0-9]+)')::int)::numeric(3,2) as average_speed_duration_km_per_min
     FROM pizza_runner.runner_orders
     WHERE pickup_time not in ('null','')
-    GROUP BY 1,2
-    ORDER BY 1,2;
+    GROUP BY runner_id, order_id
+    ORDER BY runner_id, order_id;
 
 | runner_id | order_id | average_speed_duration_km_per_min |
 | --------- | -------- | --------------------------------- |
@@ -428,14 +430,16 @@ For this question, I did inner join on runner_orders and customer_orders and fil
 | 2         | 8        | 1.56                              |
 | 3         | 5        | 0.67                              |
 
+
+I wasn't satisfied with looking at the raw speed for each table, I wanted to know the correlation between the order_id and average speed as I have seen that increasing order_id (which estimates the latter-ness of the order) is also increasing as the speed. This was confirmed by the correlation coefficient displayed below. In calculating this result, I have used the previous select statement and used it as a CTE. Then, I used CORR function on the CTE to get the correlation coefficient of order_id and speed.
+
     WITH delivery_speed as (
     SELECT runner_id,
-    order_id,
+           order_id,
            avg(substring(distance, '(\d+\.*\d*)')::numeric / substring(duration, '([0-9]+)')::int)::numeric(3,2) as average_speed_duration_km_per_min
     FROM pizza_runner.runner_orders
     WHERE pickup_time not in ('null','')
-    GROUP BY 1,2
-    ORDER BY 1,2)
+    GROUP BY runner_id, order_id)
     
     SELECT
        CORR(order_id, average_speed_duration_km_per_min) order_id_and_speed 
@@ -446,15 +450,15 @@ For this question, I did inner join on runner_orders and customer_orders and fil
 | ------------------ |
 | 0.7055260437275165 |
 
+I also calculated the correlation coefficient of total orders and average speed for each runner using the approach I did above.
 
     with delivery_speed_agg as (
-    SELECT runner_id,
-    count(order_id) total_orders,
+           SELECT runner_id,
+           count(order_id) total_orders,
            avg(substring(distance, '(\d+\.*\d*)')::numeric / substring(duration, '([0-9]+)')::int)::numeric(3,2) as average_speed_duration_km_per_min
     FROM pizza_runner.runner_orders
     WHERE pickup_time not in ('null','')
-    GROUP BY 1
-    ORDER BY 1)
+    GROUP BY runner_id);
     
     SELECT
        CORR(total_orders, average_speed_duration_km_per_min) total_order_and_speed 
@@ -465,7 +469,9 @@ For this question, I did inner join on runner_orders and customer_orders and fil
 | --------------------- |
 | 0.40659340659340626   |
 
+
 #### 7.	What is the successful delivery percentage for each runner?
+The successful delivery percentage was calculated by ratio of total number of delivered orders to total number of orders assigned. In this query, I used 'case when' to count the numbers of successful deliveries. I grouped the result by runner_id and the following are the results.
 
     SELECT runner_id,
            concat(
