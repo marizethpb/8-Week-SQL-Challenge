@@ -430,46 +430,6 @@ I calculated the average speed for each delivery by distance/duration on the tab
 | 2         | 8        | 1.56                              |
 | 3         | 5        | 0.67                              |
 
-
-I wasn't satisfied with looking at the raw speed for each table, I wanted to know the correlation between the order_id and average speed as I have seen that increasing order_id (which estimates the latter-ness of the order) is also increasing as the speed. This was confirmed by the correlation coefficient displayed below. In calculating this result, I have used the previous select statement and used it as a CTE. Then, I used CORR function on the CTE to get the correlation coefficient of order_id and speed.
-
-    WITH delivery_speed as (
-    SELECT runner_id,
-           order_id,
-           avg(substring(distance, '(\d+\.*\d*)')::numeric / substring(duration, '([0-9]+)')::int)::numeric(3,2) as average_speed_duration_km_per_min
-    FROM pizza_runner.runner_orders
-    WHERE pickup_time not in ('null','')
-    GROUP BY runner_id, order_id)
-    
-    SELECT
-       CORR(order_id, average_speed_duration_km_per_min) order_id_and_speed 
-    FROM
-       delivery_speed;
-
-| order_id_and_speed |
-| ------------------ |
-| 0.7055260437275165 |
-
-I also calculated the correlation coefficient of total orders and average speed for each runner using the approach I did above.
-
-    with delivery_speed_agg as (
-           SELECT runner_id,
-           count(order_id) total_orders,
-           avg(substring(distance, '(\d+\.*\d*)')::numeric / substring(duration, '([0-9]+)')::int)::numeric(3,2) as average_speed_duration_km_per_min
-    FROM pizza_runner.runner_orders
-    WHERE pickup_time not in ('null','')
-    GROUP BY runner_id);
-    
-    SELECT
-       CORR(total_orders, average_speed_duration_km_per_min) total_order_and_speed 
-    FROM
-       delivery_speed_agg;
-
-| total_order_and_speed |
-| --------------------- |
-| 0.40659340659340626   |
-
-
 #### 7.	What is the successful delivery percentage for each runner?
 The successful delivery percentage was calculated by ratio of total number of delivered orders to total number of orders assigned. In this query, I used 'case when' to count the numbers of successful deliveries. I grouped the result by runner_id and the following are the results.
 
