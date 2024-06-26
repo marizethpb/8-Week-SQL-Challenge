@@ -315,16 +315,167 @@ I then queried day of the week and total order for that day from left joined tab
 | Thursday  | 3            |
 | Friday    | 1            |
 | Saturday  | 5            |
-   
+
+
 #  
 ### B. Runner and Customer Experience
 #### 1.	How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
+
+    SELECT DATE_TRUNC('week', registration_date) + INTERVAL '4 days' AS WEEK,
+           count(runner_id) AS registered_runners
+    FROM pizza_runner.runners
+    GROUP BY 1
+    ORDER BY 1;
+
+| week                     | registered_runners |
+| ------------------------ | ------------------ |
+| 2021-01-01T00:00:00.000Z | 2                  |
+| 2021-01-08T00:00:00.000Z | 1                  |
+| 2021-01-15T00:00:00.000Z | 1                  |
+
+
 #### 2.	What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
+
+    SELECT runner_id,
+           ROUND(AVG(EXTRACT(EPOCH
+                             FROM pickup_time :: timestamp - order_time :: timestamp) / 60):: numeric, 2) AS average_minutes
+    FROM pizza_runner.runner_orders RO
+    INNER JOIN pizza_runner.customer_orders CO USING (order_id)
+    WHERE RO.pickup_time not in ('null',
+                                 '')
+    GROUP BY runner_id
+    ORDER BY runner_id;
+
+| runner_id | average_minutes |
+| --------- | --------------- |
+| 1         | 15.68           |
+| 2         | 23.72           |
+| 3         | 10.47           |
+
+
 #### 3.	Is there any relationship between the number of pizzas and how long the order takes to prepare?
+  
+     WITH orders_duration AS
+      (SELECT order_id,
+              count(order_id) number_of_pizza,
+              ROUND(AVG(EXTRACT(EPOCH
+                                FROM pickup_time :: timestamp - order_time :: timestamp) / 60):: numeric, 2) AS average_minutes
+       FROM pizza_runner.runner_orders RO
+       INNER JOIN pizza_runner.customer_orders CO USING (order_id)
+       WHERE RO.pickup_time not in ('null',
+                                    '')
+       GROUP BY order_id
+       ORDER BY order_id)
+   
+    SELECT round(corr(number_of_pizza, average_minutes):: numeric, 2)
+    FROM orders_duration;
+
+| round |
+| ----- |
+| 0.84  |
+
 #### 4.	What was the average distance travelled for each customer?
+   
+    SELECT customer_id, avg(substring(distance, '(\d+\.*\d*)')::numeric)::numeric(4,2) AS average_distance
+    FROM pizza_runner.runner_orders INNER JOIN pizza_runner.customer_orders using (order_id)
+    WHERE pickup_time not in ('null', '')
+    GROUP BY customer_id
+    ORDER BY customer_id;
+
+| customer_id | average_distance |
+| ----------- | ---------------- |
+| 101         | 20.00            |
+| 102         | 16.73            |
+| 103         | 23.40            |
+| 104         | 10.00            |
+| 105         | 25.00            |
+
+
 #### 5.	What was the difference between the longest and shortest delivery times for all orders?
+    SELECT max(substring(duration, '([\d]+)')::int) -  min(substring(duration, '([\d]+)')::int) AS max_min_diff
+    FROM pizza_runner.runner_orders
+    WHERE pickup_time not in ('null', '');
+
+| max_min_diff |
+| ------------ |
+| 30           |
+
+
 #### 6.	What was the average speed for each runner for each delivery and do you notice any trend for these values?
+
+    SELECT runner_id,
+    order_id,
+           avg(substring(distance, '(\d+\.*\d*)')::numeric / substring(duration, '([0-9]+)')::int)::numeric(3,2) as average_speed_duration_km_per_min
+    FROM pizza_runner.runner_orders
+    WHERE pickup_time not in ('null','')
+    GROUP BY 1,2
+    ORDER BY 1,2;
+
+| runner_id | order_id | average_speed_duration_km_per_min |
+| --------- | -------- | --------------------------------- |
+| 1         | 1        | 0.63                              |
+| 1         | 2        | 0.74                              |
+| 1         | 3        | 0.67                              |
+| 1         | 10       | 1.00                              |
+| 2         | 4        | 0.59                              |
+| 2         | 7        | 1.00                              |
+| 2         | 8        | 1.56                              |
+| 3         | 5        | 0.67                              |
+
+    WITH delivery_speed as (
+    SELECT runner_id,
+    order_id,
+           avg(substring(distance, '(\d+\.*\d*)')::numeric / substring(duration, '([0-9]+)')::int)::numeric(3,2) as average_speed_duration_km_per_min
+    FROM pizza_runner.runner_orders
+    WHERE pickup_time not in ('null','')
+    GROUP BY 1,2
+    ORDER BY 1,2)
+    
+    SELECT
+       CORR(order_id, average_speed_duration_km_per_min) order_id_and_speed 
+    FROM
+       delivery_speed;
+
+| order_id_and_speed |
+| ------------------ |
+| 0.7055260437275165 |
+
+
+    with delivery_speed_agg as (
+    SELECT runner_id,
+    count(order_id) total_orders,
+           avg(substring(distance, '(\d+\.*\d*)')::numeric / substring(duration, '([0-9]+)')::int)::numeric(3,2) as average_speed_duration_km_per_min
+    FROM pizza_runner.runner_orders
+    WHERE pickup_time not in ('null','')
+    GROUP BY 1
+    ORDER BY 1)
+    
+    SELECT
+       CORR(total_orders, average_speed_duration_km_per_min) total_order_and_speed 
+    FROM
+       delivery_speed_agg;
+
+| total_order_and_speed |
+| --------------------- |
+| 0.40659340659340626   |
+
 #### 7.	What is the successful delivery percentage for each runner?
+
+    SELECT runner_id,
+           concat(
+             round(
+             sum(CASE WHEN pickup_time not in ('null','') then 1 else 0 END) / count(order_id)::numeric
+           *100)
+           , ' %') AS success_rate
+    FROM pizza_runner.runner_orders RO
+    GROUP BY runner_id
+    ORDER BY runner_id;
+
+| runner_id | success_rate |
+| --------- | ------------ |
+| 1         | 100 %        |
+| 2         | 75 %         |
+| 3         | 50 %         |
 
 #  
 ###  C. Ingredient Optimisation
