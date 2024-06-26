@@ -319,13 +319,15 @@ I then queried day of the week and total order for that day from left joined tab
 
 #  
 ### B. Runner and Customer Experience
-#### 1.	How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
 
-    SELECT DATE_TRUNC('week', registration_date) + INTERVAL '4 days' AS WEEK,
-           count(runner_id) AS registered_runners
+#### 1.	How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
+For this question, I discovered the date_trunc function as a life saver. I used date_trunc to group the date into weeks and added 4 days to make the start date into '2021-01-01' because originally, date_trunc starts date at '2020-12-28'. I also counted the runner_id per week to account for registered_runners.
+
+    SELECT    DATE_TRUNC('week', registration_date) + INTERVAL '4 days' AS WEEK
+            , count(runner_id) AS registered_runners
     FROM pizza_runner.runners
-    GROUP BY 1
-    ORDER BY 1;
+    GROUP BY 1 -- WEEK
+    ORDER BY 1 -- WEEK;
 
 | week                     | registered_runners |
 | ------------------------ | ------------------ |
@@ -335,14 +337,14 @@ I then queried day of the week and total order for that day from left joined tab
 
 
 #### 2.	What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
+To answer this question, I first did inner join on runner_orders and customers_orders table and filtered only delivered order (not null or empty). I then get the            average minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order through average difference of pickup_time and order_time. I grouped the result per runner.
 
     SELECT runner_id,
            ROUND(AVG(EXTRACT(EPOCH
                              FROM pickup_time :: timestamp - order_time :: timestamp) / 60):: numeric, 2) AS average_minutes
     FROM pizza_runner.runner_orders RO
     INNER JOIN pizza_runner.customer_orders CO USING (order_id)
-    WHERE RO.pickup_time not in ('null',
-                                 '')
+    WHERE RO.pickup_time not in ('null','')
     GROUP BY runner_id
     ORDER BY runner_id;
 
@@ -354,7 +356,7 @@ I then queried day of the week and total order for that day from left joined tab
 
 
 #### 3.	Is there any relationship between the number of pizzas and how long the order takes to prepare?
-  
+
      WITH orders_duration AS
       (SELECT order_id,
               count(order_id) number_of_pizza,
@@ -362,8 +364,7 @@ I then queried day of the week and total order for that day from left joined tab
                                 FROM pickup_time :: timestamp - order_time :: timestamp) / 60):: numeric, 2) AS average_minutes
        FROM pizza_runner.runner_orders RO
        INNER JOIN pizza_runner.customer_orders CO USING (order_id)
-       WHERE RO.pickup_time not in ('null',
-                                    '')
+       WHERE RO.pickup_time not in ('null','')
        GROUP BY order_id
        ORDER BY order_id)
    
