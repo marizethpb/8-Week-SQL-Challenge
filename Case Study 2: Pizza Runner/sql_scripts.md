@@ -408,7 +408,7 @@ In calculating the difference between the longest and shortest delivery times, I
 | 30           |
 
 
-#### 6.	What was the average speed for each runner for each delivery and do you notice any trend for these values?
+#### 6.	What was the average speed for each runner for each delivery?
 I calculated the average speed for each delivery by distance/duration on the table with delivered orders only. I did similar approach in previous question about cleaning the distance and duration column. Finally, I grouped the result by runner_id and order_id. 
 
     SELECT runner_id,
